@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Life Calender</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: #11111b;
+                min-height: 100vh;
+                padding: 1rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                color: #fff;
+                gap: 1rem;
+                text-align: center;
+            }
+            .container {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                width: 100%;
+            }
+            .vertical {
+                flex-direction: column;
+            }
+
+            main {
+                display: flex;
+                flex-direction: column;
+                font-size: 1.25rem;
+                width: 70vw;
+                max-width: 1000px;
+                gap: 0.5rem;
+            }
+
+            #configuration {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 0.125rem 0.5rem;
+                width: 100%;
+            }
+
+            #gender,
+            #birthDate,
+            #view {
+                background: #11111b;
+                color: #fff;
+                border-radius: 0.25rem;
+                padding: 0.25rem;
+                height: 100%;
+                font-size: 1.25rem;
+                display: flex;
+                outline: none;
+                width: 100%;
+            }
+
+            label {
+                min-width: fit-content;
+            }
+
+            #calendar {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(1rem, 1fr));
+                gap: 4px;
+                margin-top: 0.25rem;
+            }
+            .unit {
+                background: #fff;
+                min-height: 1rem;
+                opacity: 90%;
+                border-radius: 0.25rem;
+            }
+            .passed {
+                background: red;
+            }
+
+            footer {
+                width: 70vw;
+                max-width: 1000px;
+            }
+
+            @media (max-width: 700px) {
+                #configuration {
+                    flex-direction: column;
+                }
+            }
+
+            @media (min-width: 600px) and (max-width: 1308px) {
+                #configuration > :last-child {
+                    grid-column: 1 / -1;
+                }
+            }
+        </style>
+
+        <main>
+            <div id="configuration">
+                <div class="container">
+                    <label for="gender">Gender</label>
+                    <select id="gender">
+                        <option value="male" selected>male</option>
+                        <option value="female">female</option>
+                    </select>
+                </div>
+
+                <div class="container">
+                    <label for="birthDate">Date of birth</label>
+                    <input
+                        type="date"
+                        name="birthDate"
+                        id="birthDate"
+                        value="2000-01-01"
+                    />
+                </div>
+
+                <div class="container">
+                    <label for="view">View</label>
+                    <select id="view">
+                        <option value="week">week</option>
+                        <option value="month" selected>month</option>
+                        <option value="year">year</option>
+                    </select>
+                </div>
+            </div>
+
+            <p id="age"></p>
+            <div id="calendar" onclick="calculateUserAge()"></div>
+        </main>
+        <footer>
+            The people who did great things had the same 24 hours. The clock is
+            running regardless. The only variable is what you do with the
+            remaining
+        </footer>
+
+        <script>
+            const gender = document.getElementById("gender");
+            const birthDate = document.getElementById("birthDate");
+            const view = document.getElementById("view");
+            const calendar = document.getElementById("calendar");
+            const age = document.getElementById("age");
+
+            const averageMaleLifeExpectancyDays = 71.2 * 365;
+            const averageFemaleLifeExpectancyDays = 76.4 * 365;
+
+            const calculateUserAge = () => {
+                const today = new Date();
+                const birth = new Date(birthDate.value);
+
+                let years = today.getFullYear() - birth.getFullYear();
+                let months = today.getMonth() - birth.getMonth();
+                let days = today.getDate() - birth.getDate();
+
+                if (days < 0) {
+                    months--;
+                    days += new Date(
+                        today.getFullYear(),
+                        today.getMonth(),
+                        0,
+                    ).getDate();
+                }
+                if (months < 0) {
+                    years--;
+                    months += 12;
+                }
+                return [years, months, days];
+            };
+
+            let [years, months, days] = calculateUserAge();
+            age.textContent = `You are ${years} years and ${months > 0 ? `${months} months` : ""} old`;
+
+            const setupCalendar = () => {
+                let numOfUnits;
+                if (gender.value === "male") {
+                    numOfUnits = averageMaleLifeExpectancyDays;
+                } else if (gender.value === "female") {
+                    numOfUnits = averageFemaleLifeExpectancyDays;
+                } else {
+                    return;
+                }
+
+                userAge = years * 365 + months * 30.4167 + days;
+
+                if (view.value === "week") {
+                    numOfUnits /= 7;
+                    userAge /= 7;
+                } else if (view.value === "month") {
+                    numOfUnits /= 30.4167;
+                    userAge /= 30.4167;
+                } else if (view.value === "year") {
+                    numOfUnits /= 365;
+                    userAge /= 365;
+                }
+
+                calendar.replaceChildren();
+                for (let i = 0; i < numOfUnits; i++) {
+                    const unit = document.createElement("div");
+                    unit.classList.add("unit");
+                    if (i < userAge) {
+                        unit.classList.add("passed");
+                    }
+                    calendar.appendChild(unit);
+                }
+            };
+
+            gender.addEventListener("change", () => {
+                setupCalendar();
+            });
+
+            view.addEventListener("change", () => {
+                setupCalendar();
+            });
+
+            birthDate.addEventListener("change", () => {
+                [years, months, days] = calculateUserAge();
+                age.textContent = `You are ${years} years and ${months > 0 ? `${months} months` : ""} old`;
+                setupCalendar();
+            });
+
+            window.addEventListener("load", () => {
+                setupCalendar();
+            });
+        </script>
+    </body>
+</html>
